@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memecoin Checker — Multi-Platform Token Analyzer</title>
+  <meta name="description" content="Analisis memecoin aggregator dari DexScreener, RugCheck, GMGN, dan lainnya. Cek keamanan token sebelum beli.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- ─── Navbar ─────────────────────────────── -->
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">
+      <div class="logo-icon">🔍</div>
+      <div>
+        <span>Memecoin Checker</span>
+        <span class="navbar-subtitle">by Hermes</span>
+      </div>
+    </a>
+    <div style="color:var(--text-muted);font-size:13px;">⚡ Multi-Platform</div>
+  </nav>
+
+  <!-- ─── Search ─────────────────────────────── -->
+  <section class="search-section">
+    <h1>🔍 Check Any Memecoin</h1>
+    <p>Aggregated analysis from <strong>DexScreener</strong> · <strong>RugCheck.xyz</strong> · <strong>GMGN</strong> · <strong>pump.fun</strong> · <strong>SharpeAI</strong> · <strong>Token Sniffer</strong></p>
+
+    <form id="searchForm" class="search-box">
+      <input
+        id="searchInput"
+        type="text"
+        placeholder="e.g. bonk, dogwifhat, or token address..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button type="submit" id="searchBtn">
+        <span>🔎</span> Analyze
+      </button>
+    </form>
+
+    <div class="search-hints">
+      <span>Try:</span>
+      <span class="hint-tag" data-query="bonk">$BONK</span>
+      <span class="hint-tag" data-query="dogwifhat">$WIF</span>
+      <span class="hint-tag" data-query="popcat">$POPCAT</span>
+      <span class="hint-tag" data-query="moodeng">$MOODENG</span>
+      <span class="hint-tag" data-query="pepe">$PEPE</span>
+    </div>
+  </section>
+
+  <!-- ─── Loading ────────────────────────────── -->
+  <div class="loading-state" id="loading">
+    <div class="spinner"></div>
+    <p>Analyzing memecoin across platforms...</p>
+    <div class="loading-steps">
+      <div class="step" id="stepDex" data-label="🔎 DexScreener" data-active="🔎 Searching DexScreener..." data-done="✅ DexScreener">🔎 DexScreener</div>
+      <div class="step" id="stepRug" data-label="🛡️ RugCheck" data-active="🛡️ Scanning RugCheck..." data-done="✅ RugCheck">🛡️ RugCheck</div>
+      <div class="step" id="stepGMGN" data-label="🐍 GMGN" data-active="🐍 Analyzing on-chain..." data-done="✅ GMGN">🐍 GMGN</div>
+      <div class="step" id="stepSniffer" data-label="🛡️ Token Sniffer" data-active="🛡️ Scanning contract..." data-done="✅ Token Sniffer">🛡️ Token Sniffer</div>
+      <div class="step" id="stepSharpe" data-label="🧠 SharpeAI" data-active="🧠 Analyzing sentiment..." data-done="✅ SharpeAI">🧠 SharpeAI</div>
+      <div class="step" id="stepPump" data-label="🚀 pump.fun" data-active="🚀 Checking pump.fun..." data-done="✅ pump.fun">🚀 pump.fun</div>
+      <div class="step" id="stepAgg" data-label="📊 Aggregating" data-active="📊 Computing analysis..." data-done="✅ Analysis Complete">📊 Aggregating</div>
+    </div>
+  </div>
+
+  <!-- ─── Error ──────────────────────────────── -->
+  <div class="error-state" id="error">
+    <div class="error-icon">⚠️</div>
+    <h3>Analysis Failed</h3>
+    <p class="error-text"></p>
+  </div>
+
+  <!-- ─── Results ────────────────────────────── -->
+  <div class="results" id="results">
+
+    <!-- Summary Card -->
+    <div class="summary-card fade-in">
+      <div class="summary-header">
+        <div class="token-info">
+          <img class="token-icon" id="tokenIcon" src="" alt="token icon" />
+          <div class="token-name">
+            <h2 id="tokenName">Token Name</h2>
+            <div class="token-meta">
+              <span id="tokenSymbol">$SYMBOL</span>
+              <span class="chain-badge" id="tokenChain">chain</span>
+              <span class="dex-badge" id="tokenDex">dex</span>
+            </div>
+          </div>
+        </div>
+        <div class="status-badges">
+          <span class="badge badge-yellow" id="riskBadge">Analyzing...</span>
+          <span class="badge badge-blue" id="oppBadge">Checking...</span>
+        </div>
+      </div>
+
+      <!-- Token Address -->
+      <div class="address-display" id="tokenAddressDisplay">
+        <span>Fetching address...</span>
+      </div>
+
+      <!-- External Links -->
+      <div class="external-links" id="extLinks"></div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="summary-card fade-in">
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <div class="metric-label">Market Cap</div>
+          <div class="metric-value" id="metricMC">—</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Price</div>
+          <div class="metric-value" id="metricPrice">—</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">24h Volume</div>
+          <div class="metric-value" id="metricVol">—</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Liquidity</div>
+          <div class="metric-value" id="metricLiq">—</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">24h Price Change</div>
+          <div class="metric-value" id="metricChange">—</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Buy/Sell Ratio (24h)</div>
+          <div class="metric-value" id="metricBuySell">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analysis Grid -->
+    <div class="analysis-grid fade-in">
+
+      <!-- RugCheck Security -->
+      <div class="analysis-card">
+        <h3><span class="icon">🛡️</span> RugCheck Security Score</h3>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+          <span style="color:var(--text-secondary);font-size:13px;">Score</span>
+          <span>
+            <strong id="rugScore" style="font-size:24px;color:var(--text-primary);">—</strong>
+            <span style="color:var(--text-muted);font-size:13px;"> /1000</span>
+            <span style="font-size:13px;color:var(--text-secondary);margin-left:4px;" id="rugScoreNormalised"></span>
+          </span>
+        </div>
+        <div class="risk-bar">
+          <div class="risk-bar-fill risk-medium" id="riskBar" style="width:50%"></div>
+        </div>
+        <div class="risk-detail">
+          <span>Risk Level</span>
+          <span class="val" id="riskLevelDisplay">—</span>
+        </div>
+        <ul class="risk-list" id="riskList">
+          <li style="color:var(--text-muted);">Waiting for data...</li>
+        </ul>
+      </div>
+
+      <!-- Top Pairs -->
+      <div class="analysis-card">
+        <h3><span class="icon">📊</span> Top Trading Pairs</h3>
+        <div class="pair-table-wrap">
+          <table class="pair-table">
+            <thead>
+              <tr>
+                <th>Chain / DEX</th>
+                <th>Price</th>
+                <th>24h Chg</th>
+                <th>Liq</th>
+                <th>Vol 24h</th>
+                <th>Buys</th>
+                <th>Sells</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="pairBody">
+              <tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px;">No pair data</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Platform Analysis Cards -->
+    <div class="analysis-grid fade-in">
+
+      <!-- GMGN Analysis -->
+      <div class="analysis-card">
+        <h3><span class="icon">🐍</span> GMGN — Holder & Sniper</h3>
+        <div id="gmgnContent">
+          <div class="risk-detail"><span>Holders</span><span class="val" id="gmgnHolders">—</span></div>
+          <div class="risk-detail"><span>Top 10 Concentration</span><span class="val" id="gmgnTop10">—</span></div>
+          <div class="risk-detail"><span>Sniper Wallets</span><span class="val" id="gmgnSnipers">—</span></div>
+          <div class="risk-detail"><span>Insider Score</span><span class="val" id="gmgnInsider">—</span></div>
+          <div class="risk-detail"><span>Verdict</span><span class="val" id="gmgnVerdict">—</span></div>
+        </div>
+      </div>
+
+      <!-- Token Sniffer -->
+      <div class="analysis-card">
+        <h3><span class="icon">🛡️</span> Token Sniffer — Security</h3>
+        <div id="tsContent">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+            <span style="color:var(--text-secondary);font-size:13px;">Contract Score</span>
+            <span><strong id="tsScore" style="font-size:24px;color:var(--text-primary);">—</strong><span style="color:var(--text-muted);font-size:13px;"> /1000</span></span>
+          </div>
+          <div class="risk-bar"><div class="risk-bar-fill" id="tsBar" style="width:50%"></div></div>
+          <div class="risk-detail"><span>Label</span><span class="val" id="tsLabel">—</span></div>
+          <div class="risk-detail"><span>Critical Risks</span><span class="val" id="tsCritical">—</span></div>
+          <div class="risk-detail"><span>Good Signals</span><span class="val" id="tsGood">—</span></div>
+          <ul class="risk-list" id="tsRiskList"><li style="color:var(--text-muted);">Waiting for data...</li></ul>
+        </div>
+      </div>
+
+      <!-- SharpeAI Intelligence -->
+      <div class="analysis-card">
+        <h3><span class="icon">🧠</span> SharpeAI — Intelligence</h3>
+        <div id="sharpeContent">
+          <div class="risk-detail"><span>Overall Sentiment</span><span class="val" id="sharpeSentiment">—</span></div>
+          <div class="risk-detail"><span>Market Score</span><span class="val" id="sharpeScore">—</span></div>
+          <div class="risk-detail"><span>Grade</span><span class="val" id="sharpeGrade">—</span></div>
+          <div class="risk-detail"><span>Twitter Volume</span><span class="val" id="sharpeTwitter">—</span></div>
+          <div class="risk-detail"><span>Telegram</span><span class="val" id="sharpeTelegram">—</span></div>
+          <div class="risk-detail"><span>Bot Activity</span><span class="val" id="sharpeBot">—</span></div>
+        </div>
+      </div>
+
+      <!-- pump.fun Tracker -->
+      <div class="analysis-card">
+        <h3><span class="icon">🚀</span> pump.fun — Launch Tracker</h3>
+        <div id="pumpContent">
+          <div id="pumpFound" style="display:none;">
+            <div class="risk-detail"><span>Bonding Curve</span><span class="val" id="pumpStage">—</span></div>
+            <div class="risk-detail"><span>Progress</span><span class="val" id="pumpProgress">—</span></div>
+            <div class="risk-detail"><span>Age</span><span class="val" id="pumpAge">—</span></div>
+            <div class="risk-detail"><span>Buy Pressure (1h)</span><span class="val" id="pumpBuyPressure">—</span></div>
+            <div class="risk-detail"><span>Status</span><span class="val" id="pumpStatus">—</span></div>
+          </div>
+          <div id="pumpNotFound">
+            <p style="color:var(--text-muted);font-size:13px;">⏳ Not a pump.fun token, or no pump.fun pairs detected</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Footer ─────────────────────────────── -->
+  <div class="footer">
+    <p>
+      🔍 <strong>Memecoin Checker</strong> — Aggregated analysis from
+      <a href="https://dexscreener.com" target="_blank">DexScreener</a>,
+      <a href="https://rugcheck.xyz" target="_blank">RugCheck.xyz</a>,
+      <a href="https://gmgn.ai" target="_blank">GMGN</a>,
+      <a href="https://pump.fun" target="_blank">pump.fun</a>,
+      <a href="https://sharpe.ai" target="_blank">SharpeAI</a>,
+      and <a href="https://tokensniffer.com" target="_blank">Token Sniffer</a>.
+      Not financial advice. Always DYOR. 🧠
+    </p>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
